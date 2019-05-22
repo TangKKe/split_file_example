@@ -1,8 +1,8 @@
 import java.util.List;
 
-public class DealDataService extends ReaderFileListener{
+public class DealDataAndInsertDB extends DealFileService{
 
-    public DealDataService(String encode) {
+    public DealDataAndInsertDB(String encode) {
         super(encode);
     }
 

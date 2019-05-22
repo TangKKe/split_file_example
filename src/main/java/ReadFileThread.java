@@ -1,3 +1,5 @@
+import java.io.File;
+
 /**
  * Created with IntelliJ IDEA.
  * User: okey
@@ -7,28 +9,28 @@
  */
 public class ReadFileThread extends Thread {
 
-    private ReaderFileListener processPoiDataListeners;
-    private String filePath;
+    private DealFileService dealFileService;
+    private File file;
     private long start;
     private long end;
 
-    public ReadFileThread(ReaderFileListener processPoiDataListeners,long start,long end,String file) {
+    public ReadFileThread(DealFileService dealFileService,long start,long end, File file) {
         this.setName(this.getName()+"-ReadFileThread");
         this.start = start;
         this.end = end;
-        this.filePath = file;
-        this.processPoiDataListeners = processPoiDataListeners;
+        this.file = file;
+        this.dealFileService = dealFileService;
     }
 
     @Override
     public void run() {
         ReadFile readFile = new ReadFile();
-        readFile.setReaderListener(processPoiDataListeners);
-        readFile.setEncode(processPoiDataListeners.getEncode());
+        readFile.setReaderListener(dealFileService);
+        readFile.setEncode(dealFileService.getEncode());
 //        readFile.addObserver();
         try {
             Long start = System.currentTimeMillis();
-            readFile.readFileByLine(filePath, start, end + 1,Thread.currentThread().getName());
+            readFile.readFileByLine(file, start, end + 1,Thread.currentThread().getName());
             System.out.println("线程" + Thread.currentThread().getName()+ "----处理完毕耗时：" + ((System.currentTimeMillis() - start)));
         } catch (Exception e) {
             e.printStackTrace();
