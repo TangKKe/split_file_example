@@ -31,6 +31,7 @@ public abstract class DealFileService {
      * @throws Exception
      */
     public void outLine(String lineStr, long lineNum, boolean over, String name) throws Exception {
+        System.out.println(Thread.currentThread().getName() + "11111----" + lineStr);
 
 
     }

@@ -25,13 +25,10 @@ public class ReadFileThread extends Thread {
     @Override
     public void run() {
         ReadFile readFile = new ReadFile();
-        readFile.setReaderListener(dealFileService);
+        readFile.setDealFileService(dealFileService);
         readFile.setEncode(dealFileService.getEncode());
-//        readFile.addObserver();
         try {
-            Long start = System.currentTimeMillis();
             readFile.readFileByLine(file, start, end + 1,Thread.currentThread().getName());
-            System.out.println("线程" + Thread.currentThread().getName()+ "----处理完毕耗时：" + ((System.currentTimeMillis() - start)));
         } catch (Exception e) {
             e.printStackTrace();
         }

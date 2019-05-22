@@ -22,12 +22,10 @@ public class DealFile {
                 // 计算精确开始位置
                 long startNum = j == 0 ? 0 : readFile.getStartNum(file, i * j);
                 long endNum = j + 1 < dealThreadNum ? readFile.getStartNum(file, i * (j + 1)) : -2;
-                // 具体监听实现
+
                 DealDataAndInsertDB dealDataAndInsertDB = new DealDataAndInsertDB("UTF-8");
                 new ReadFileThread(dealDataAndInsertDB, startNum, endNum, file).start();
             }
-
-
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception e) {

@@ -12,7 +12,7 @@ public class ReadFile{
     // 当前行数
     private long lineNum = 0;
     // 文件编码,默认为UTF-8
-    private String encode = "UTF-8";
+    private String encode;
     // 数据的具体处理逻辑
     private DealFileService dealFileService;
 
@@ -20,7 +20,7 @@ public class ReadFile{
         this.encode = encode;
     }
 
-    public void setReaderListener(DealFileService dealFileService) {
+    public void setDealFileService(DealFileService dealFileService) {
         this.dealFileService = dealFileService;
     }
 
@@ -88,9 +88,13 @@ public class ReadFile{
      */
     public void readFileByLine(File file, long start, long end, String name) throws Exception {
         Long time = System.currentTimeMillis();
+        System.out.println("start---" + start);
+        System.out.println("end---" + end);
+
         if (file.exists()) {
             FileChannel channel = new RandomAccessFile(file, "r").getChannel();
             channel.position(start);
+            System.out.println("aaaaaaaaaaaaaaaa" + channel.size());
             try {
                 ByteBuffer buffer = ByteBuffer.allocate(buffSize);
                 // 每次读取的内容
@@ -101,6 +105,7 @@ public class ReadFile{
                 // 当前读取文件位置
                 long currentPositon = start;
                 while (channel.read(buffer) != -1) {
+                    System.out.println("bbbbbbbbbbbbbb");
                     //从起始位置开始累加buffSize
                     currentPositon += buffSize;
                     //buffer当前所在的操作位置
