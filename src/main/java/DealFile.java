@@ -4,6 +4,8 @@ import java.io.IOException;
 
 
 public class DealFile {
+
+
     public static void main(String[] args) throws Exception {
 
 
@@ -14,8 +16,10 @@ public class DealFile {
             fis = new FileInputStream(file);
             int available = fis.available();
             System.out.println("文件大小" + available);
-
-            int dealThreadNum = 2;
+            int dealThreadNum = 1;
+            if(available > 1024){
+                dealThreadNum = 3;
+            }
             // 线程粗略开始位置
             int i = available / dealThreadNum;
             for (int j = 0; j < dealThreadNum; j++) {
@@ -24,7 +28,7 @@ public class DealFile {
                 long endNum = j + 1 < dealThreadNum ? readFile.getStartNum(file, i * (j + 1)) : -2;
 
                 DealDataAndInsertDB dealDataAndInsertDB = new DealDataAndInsertDB("UTF-8");
-                new ReadFileThread(dealDataAndInsertDB, startNum, endNum, file).start();
+                new ReadFileThread(dealDataAndInsertDB, startNum, endNum, file,dealThreadNum).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -32,4 +36,5 @@ public class DealFile {
             e.printStackTrace();
         }
     }
+
 }

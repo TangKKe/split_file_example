@@ -13,8 +13,10 @@ public class ReadFile{
     private long lineNum = 0;
     // 文件编码,默认为UTF-8
     private String encode;
-    // 数据的具体处理逻辑
+    // 数据的具体处理逻辑 这个里面不能有状态
     private DealFileService dealFileService;
+
+
 
     public void setEncode(String encode) {
         this.encode = encode;
@@ -86,7 +88,7 @@ public class ReadFile{
      * @param end
      * @throws Exception
      */
-    public void readFileByLine(File file, long start, long end, String name) throws Exception {
+    public void readFileByLine(File file, long start, long end, int dealThreadNum, int successThread, boolean flag,String name) throws Exception {
         Long time = System.currentTimeMillis();
         System.out.println("start---" + start);
         System.out.println("end---" + end);
@@ -142,6 +144,7 @@ public class ReadFile{
                         lineNum++;
                         // 输出一行内容，处理方式由调用方提供
                         dealFileService.outLine(line.trim(), lineNum, false,name);
+                        //进行数据的组装
                         fromIndex = endIndex + 1;
                     }
                     // 将未读取完成的内容放到缓存中
@@ -152,9 +155,24 @@ public class ReadFile{
                 }
                 // 将剩下的最后内容作为一行，输出，并指明这是最后一行
                 String lineStr = new String(cachedBuffer, 0, cachedBuffer.length, encode);
+
                 dealFileService.outLine(lineStr.trim(), lineNum, true,name);
-                System.out.println(name + "内部方法耗时 + " +(System.currentTimeMillis()-time));
+                int a = ReadFile.update(successThread);
+                System.out.println("啊啊啊啊successThread-----" + a);
+
+                //自旋等待其它线程
+                while(flag){
+
+                    if(dealThreadNum == a ){
+                        break;
+                    }
+
+                }
+                System.out.println("successThread-----" + successThread);
+
+                //到这里
             } catch (Exception e) {
+                flag = false;
                 e.printStackTrace();
             } finally {
                 channel.close();
@@ -195,6 +213,11 @@ public class ReadFile{
         byte[] bytes = new byte[size];
         System.arraycopy(src, fromIndex, bytes, 0, size);
         return bytes;
+    }
+
+    private static  synchronized  int update(int i){
+        ++i;
+        return i;
     }
 
 }
