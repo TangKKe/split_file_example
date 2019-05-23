@@ -126,14 +126,15 @@ public class ReadFileThread extends Thread {
 
                 //自旋等待其它线程
                 while (flag) {
-
                     if (dealThreadNum == successThread) {
                         break;
                     }
+                }
+                if(!flag){
+                    throw new FileNotFoundException("文件异常");
 
                 }
                 System.out.println("successThread-----" + successThread);
-
                 //到这里
             } else {
                 throw new FileNotFoundException("文件异常");
