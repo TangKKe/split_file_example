@@ -3,14 +3,9 @@ import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Created with IntelliJ IDEA.
- * User: okey
- * Date: 14-4-2
- * Time: 下午4:50
- * To change this template use File | Settings | File Templates.
- */
+
 public class ReadFileThread extends Thread {
 
     private DealFileService dealFileService;
@@ -20,7 +15,7 @@ public class ReadFileThread extends Thread {
 
     private int  dealThreadNum = 0;
 
-    private int buffSize = 1024;
+    private int buffSize = 1024*1024;
     // 换行符
     private byte key = "\n".getBytes()[0];
     // 当前行数
@@ -29,17 +24,17 @@ public class ReadFileThread extends Thread {
     private String encode = "UTF-8";
 
     private static volatile boolean flag = true;
-    private static int successThread  = 0;
+
+    public static AtomicInteger atomicInteger = new AtomicInteger(0);
 
 
-
-    public ReadFileThread(DealFileService dealFileService,long start,long end, File file,int dealThreadNum) {
-        this.setName(this.getName()+"-ReadFileThread");
+    public ReadFileThread(DealFileService dealFileService,long start,long end, File file,int dealThreadNum, int buffSize) {
         this.start = start;
         this.end = end;
         this.file = file;
         this.dealThreadNum = dealThreadNum;
         this.dealFileService = dealFileService;
+        this.buffSize = buffSize;
     }
 
     @Override
@@ -52,15 +47,12 @@ public class ReadFileThread extends Thread {
         FileChannel channel = null;
         try {
             Long time = System.currentTimeMillis();
-            System.out.println("start---" + start);
-            System.out.println("end---" + end);
 
             String name = Thread.currentThread().getName();
 
             if (file.exists()) {
                 channel = new RandomAccessFile(file, "r").getChannel();
                 channel.position(start);
-                System.out.println("aaaaaaaaaaaaaaaa" + channel.size());
 
                 ByteBuffer buffer = ByteBuffer.allocate(buffSize);
                 // 每次读取的内容
@@ -71,7 +63,6 @@ public class ReadFileThread extends Thread {
                 // 当前读取文件位置
                 long currentPositon = start;
                 while (channel.read(buffer) != -1) {
-                    System.out.println("bbbbbbbbbbbbbb");
                     //从起始位置开始累加buffSize
                     currentPositon += buffSize;
                     //buffer当前所在的操作位置
@@ -120,13 +111,13 @@ public class ReadFileThread extends Thread {
                 // 将剩下的最后内容作为一行，输出，并指明这是最后一行
                 String lineStr = new String(cachedBuffer, 0, cachedBuffer.length, encode);
 
+
                 dealFileService.outLine(lineStr.trim(), lineNum, true, name);
-                successThread++;
-                System.out.println("啊啊啊啊successThread-----" + successThread);
+                atomicInteger.getAndIncrement();
 
                 //自旋等待其它线程
                 while (flag) {
-                    if (dealThreadNum == successThread) {
+                    if (dealThreadNum == Integer.valueOf(atomicInteger.toString())) {
                         break;
                     }
                 }
@@ -134,7 +125,7 @@ public class ReadFileThread extends Thread {
                     throw new FileNotFoundException("文件异常");
 
                 }
-                System.out.println("successThread-----" + successThread);
+                System.out.println(name + "耗时：" +(System.currentTimeMillis() - time));
                 //到这里
             } else {
                 throw new FileNotFoundException("文件异常");
@@ -191,8 +182,5 @@ public class ReadFileThread extends Thread {
         return bytes;
     }
 
-    private static  synchronized  int update(int i){
-        ++i;
-        return i;
-    }
+
 }
