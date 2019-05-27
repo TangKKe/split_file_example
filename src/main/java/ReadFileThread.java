@@ -3,10 +3,11 @@ import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class ReadFileThread extends Thread {
+public class ReadFileThread implements Callable<String> {
 
     private DealFileService dealFileService;
     private File file;
@@ -14,6 +15,8 @@ public class ReadFileThread extends Thread {
     private long end;
 
     private int  dealThreadNum = 0;
+
+    private int i = 0;
 
     private int buffSize = 1024*1024;
     // 换行符
@@ -28,17 +31,17 @@ public class ReadFileThread extends Thread {
     public static AtomicInteger atomicInteger = new AtomicInteger(0);
 
 
-    public ReadFileThread(DealFileService dealFileService,long start,long end, File file,int dealThreadNum, int buffSize) {
+    public ReadFileThread(DealFileService dealFileService,long start,long end, File file,int dealThreadNum, int buffSize,int j) {
         this.start = start;
         this.end = end;
         this.file = file;
         this.dealThreadNum = dealThreadNum;
         this.dealFileService = dealFileService;
         this.buffSize = buffSize;
+        this.i = j;
     }
 
-    @Override
-    public void run() {
+    public String call() throws Exception{
 //        ReadFile readFile = new ReadFile();
 //        readFile.setDealFileService(dealFileService);
 //        readFile.setEncode(dealFileService.getEncode());
@@ -113,27 +116,37 @@ public class ReadFileThread extends Thread {
 
 
                 dealFileService.outLine(lineStr.trim(), lineNum, true, name);
+                if( i == 0){
+                    throw new Exception("woshiyichang" + i);
+                }
                 atomicInteger.getAndIncrement();
+
 
                 //自旋等待其它线程
                 while (flag) {
+                    System.out.println(name + "开始等待");
                     if (dealThreadNum == Integer.valueOf(atomicInteger.toString())) {
                         break;
                     }
                 }
                 if(!flag){
-                    throw new FileNotFoundException("文件异常");
+                    throw new Exception("其它线程未读取文件失败");
 
                 }
+
                 System.out.println(name + "耗时：" +(System.currentTimeMillis() - time));
+                return "success";
+
                 //到这里
             } else {
                 throw new FileNotFoundException("文件异常");
             }
 
         }catch (Exception e) {
+            System.out.println("fashengleyichang");
                     flag = false;
                     e.printStackTrace();
+                    throw e;
                 } finally {
                    try{
                        channel.close();

@@ -1,6 +1,11 @@
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 
 public class DealFile {
@@ -28,6 +33,9 @@ public class DealFile {
                 buffSize = 1024 * 10;
 
             }
+            ExecutorService executorService = Executors.newFixedThreadPool(dealThreadNum);
+            ArrayList<Future<String>> resultList = new ArrayList<Future<String>>();
+
             // 线程粗略开始位置
             int i = available / dealThreadNum;
             for (int j = 0; j < dealThreadNum; j++) {
@@ -36,11 +44,17 @@ public class DealFile {
                 long endNum = j + 1 < dealThreadNum ? readFile.getStartNum(file, i * (j + 1)) : -2;
 
                 DealDataAndInsertDB dealDataAndInsertDB = new DealDataAndInsertDB("UTF-8");
-                new ReadFileThread(dealDataAndInsertDB, startNum, endNum, file,dealThreadNum,buffSize).start();
+                resultList.add(executorService.submit(new ReadFileThread(dealDataAndInsertDB, startNum, endNum, file,dealThreadNum,buffSize,j)));
+            }
+
+            if(null != resultList && resultList.size() > 0){
+                System.out.println("111111111111"+resultList.get(1).get());
+                System.out.println("111111111111"+resultList.get(0).get());
             }
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception e) {
+            System.out.println("主线程成功捕捉到异常"+e.getMessage());
             e.printStackTrace();
         }
     }
